@@ -27,7 +27,7 @@ async function getSpecificCar(req: Request, res: Response) {
 
 async function createCar(req: Request, res: Response) {
   const { model, licensePlate, year, color } = req.body;
-
+  
   try {
     await carService.createCar(model, licensePlate, year, color)
     res.sendStatus(httpStatus.CREATED);
@@ -36,16 +36,19 @@ async function createCar(req: Request, res: Response) {
     if (e.name === "ConflictError") {
       return res.sendStatus(httpStatus.CONFLICT);
     }
-
+    
     return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 
 async function deleteCar(req: Request, res: Response) {
   const carId = parseInt(req.params.carId);
-
+  
+  
   try {
-    await carService.deleteCar(carId);
+    const {id} = await carService.getCar(carId);
+
+    await carService.deleteCar(id)
     res.send(httpStatus.OK);
   } catch (e) {
     console.log(e);
@@ -57,11 +60,25 @@ async function deleteCar(req: Request, res: Response) {
   }
 }
 
+async function updateCar(req: Request, res: Response) {
+  const carId = parseInt(req.params.carId);
+  const { model, licensePlate, year, color } = req.body;
+  try {
+     await carService.updateCar(model, licensePlate, year, color, carId);
+     res.sendStatus(httpStatus.OK)
+  } catch (e) {
+    if (e.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+  }
+}
+
 const carController = {
   getAllCars,
   getSpecificCar,
   createCar,
-  deleteCar
+  deleteCar,
+  updateCar
 }
 
 export default carController;
